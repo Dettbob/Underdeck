@@ -1,10 +1,12 @@
 // ---------- saved run: the game in progress is kept in browser storage and offered as "Pokračovat" ----------
+// a saved run only loads into the same build it was saved from (another build may shape the game state differently)
+const RUNV=typeof UD_BUILD!=='undefined'?UD_BUILD:1;
 const runOk=x=>x&&!x.dummy&&!x.tut&&x.over!=='dead'&&x.screen!=='final'&&!(x.mode==='single'&&x.over==='win');
 function runSave(){
   if(!S||S.dummy||S.tut||TUT.on)return;
-  try{if(runOk(S))localStorage.setItem('ud_run',JSON.stringify({v:1,t:Date.now(),S:Object.assign({},S,{history:[]}),CARDS}));else localStorage.removeItem('ud_run');}catch(e){}
+  try{if(runOk(S))localStorage.setItem('ud_run',JSON.stringify({v:RUNV,t:Date.now(),S:Object.assign({},S,{history:[]}),CARDS}));else localStorage.removeItem('ud_run');}catch(e){}
 }
-function runLoad(){try{const o=JSON.parse(localStorage.getItem('ud_run')||'null');if(o&&o.S&&Array.isArray(o.CARDS)&&runOk(o.S))return o;}catch(e){}return null;}
+function runLoad(){try{const o=JSON.parse(localStorage.getItem('ud_run')||'null');if(o&&o.v===RUNV&&o.S&&Array.isArray(o.CARDS)&&runOk(o.S))return o;}catch(e){}return null;}
 function runClear(){try{localStorage.removeItem('ud_run');}catch(e){}}
 function resumeState(){if(runOk(S)&&!TUT.on)return S;const o=runLoad();return o?o.S:null;}
 function runResume(){

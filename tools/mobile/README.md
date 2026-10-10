@@ -19,4 +19,4 @@ PC build změnil kus kódu, na který se úprava napojuje. Úpravu pak dodělej 
 ## Uložená data (localStorage)
 `ud_meta` diamanty a vylepšení, `ud_stats` statistiky, `ud_run` rozehraná hra, `ud_vmus`/`ud_vsfx` hlasitost.
 Rozehraná hra je uložený stav `S` a `CARDS`. Když nový build změní jejich tvar, starý `ud_run` může přestat sedět;
-`runLoad()` ho v tom případě ignoruje a diamanty zůstanou.
+Proto se rozehraná hra načte jen do stejného buildu, ze kterého byla uložená (`UD_BUILD` = otisk PC souboru). Po aktualizaci se starý run zahodí, diamanty a vylepšení zůstanou.

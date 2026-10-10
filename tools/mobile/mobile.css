@@ -24,7 +24,7 @@ button,.tile,.pk,summary,.dflee{touch-action:manipulation}
 #tipx small{display:block;color:var(--dim);font-size:12px;margin-top:6px}
 @keyframes tipin{from{opacity:0;transform:translate(-50%,8px)}}
 .coach.floating{bottom:calc(16px + env(safe-area-inset-bottom,0px))}
-.over,#rpt,#devc,#bak{padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px))}
+.over,#rpt,#devc,#bak,#gal{padding:calc(16px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px))}
 #menu .mc{padding-top:calc(clamp(28px,8vh,90px) + env(safe-area-inset-top,0px))}
 #menu .credit{bottom:calc(22px + env(safe-area-inset-bottom,0px))}
 #menu #maud{top:calc(16px + env(safe-area-inset-top,0px))}
@@ -55,6 +55,7 @@ button,.tile,.pk,summary,.dflee{touch-action:manipulation}
   .tile.room{width:100%}
   .room .rb{grid-template-columns:1fr 96px}
   .coach{padding:12px 14px}.coach p{font-size:15px}
+  #gal{background:#0b0d0ef7}
   #menu{overflow-y:auto}
   #menu .mbtns{margin-top:clamp(24px,6vh,90px)}
   #menu .credit{position:static;margin-top:28px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}

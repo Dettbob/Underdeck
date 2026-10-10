@@ -12,7 +12,7 @@ What it does:
 Each step looks for an exact piece of the game's code. If the PC build changed that piece,
 the script stops and names the step, so it can be fixed by hand (see tools/mobile/README.md).
 """
-import os, re, sys, time
+import hashlib, os, re, sys, time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PIECES = os.path.join(ROOT, 'tools', 'mobile')
@@ -44,18 +44,22 @@ rep('css', '</style>', piece('mobile.css') + '</style>')
 idx = src.rfind('</script>')
 src = src[:idx] + piece('touch.js') + src[idx:]
 rep('rules-tips', 'najetím myší', 'najetím myší (na telefonu klepnutím nebo podržením)', count=src.count('najetím myší') or 1, required=False)
+rep('gallery-hint', 'Najetím myší uvidíš popis', 'Najetím myší (na telefonu klepnutím) uvidíš popis', required=False)
 rep('rules-drag', '<li>Kartu přetáhni na jedno z míst.', '<li>Kartu přetáhni na jedno z míst (na telefonu prstem). Klepnutím na kartu nebo podržením prstu na Roomu zobrazíš popis.', required=False)
 
 # --- 2. saving + backup ---
 rep_re('newGame-tut', r"S=\{mode,", "S={mode,tut:!!tut,")
 rep_re('modal-save', r"(function modal\(\)\{\n?[^\n]*?wxUpdate\(\);)", r"\1\n  runSave();")
 rep_re('menu-resume', r"if\(menuOpen\)\{\$\('menu'\)\.hidden=false;o\.hidden=true;\$\('mbtns'\)\.innerHTML=`<button class=\"b go\" data-act=\"camp\"",
-       "if(menuOpen){$('menu').hidden=false;o.hidden=true;const R=resumeState();$('mbtns').innerHTML=(R?`<button class=\"b go cont\" data-act=\"resume\">Pokračovat<small>${R.mode==='camp'?'Výprava · Room '+R.roomNo+'/15':'Klasická hra'} · ♥ ${R.hp}/${R.max}</small></button>`:'')+`<button class=\"b ${R?'':'go'}\" data-act=\"camp\"")
+       "if(menuOpen){$('menu').hidden=false;o.hidden=true;const R=resumeState();$('mbtns').innerHTML=(R?`<button class=\"b go cont\" data-act=\"resume\">Pokračovat<small>${R.mode==='camp'?'Výprava · Room '+R.roomNo+'/'+(typeof NROOM!=='undefined'?NROOM:15):'Klasická hra'} · ♥ ${R.hp}/${R.max}</small></button>`:'')+`<button class=\"b ${R?'':'go'}\" data-act=\"camp\"")
 rep_re('menu-backup', r'<div class="mrow">', '<div class="mrow"><button class="b rst" data-act="backup">Záloha postupu</button>')
 rep_re('new-game-confirm', r"else if\(a==='single'\|\|a==='camp'\)\{tutEnd\(\);menuOpen=false;viewDeck=false;newGame\(a\);\}",
        "else if(a==='single'||a==='camp'){const go=()=>{tutEnd();menuOpen=false;viewDeck=false;runClear();newGame(a);};if(resumeState())devConfirm('Rozehraná hra se tím ukončí a nepůjde se k ní vrátit. Diamanty a vylepšení zůstanou.',go,'Začít novou hru?','Začít novou');else go();}\n  else if(a==='resume')runResume();\n  else if(a==='backup')bakOpen();")
-rep_re('busy-allow', r"if\(busy&&a!=='single'&&a!=='camp'&&a!=='tut'\)return;",
-       "if(busy&&!['single','camp','tut','resume','backup','report','reset'].includes(a))return;")
+if re.search(r"if\(busy&&!\[[^\]]*\]\.includes\(a\)\)return;", src):
+    rep_re('busy-allow', r"(if\(busy&&!\[)([^\]]*\]\.includes\(a\)\)return;)", r"\1'resume','backup',\2")
+else:
+    rep_re('busy-allow', r"if\(busy&&a!=='single'&&a!=='camp'&&a!=='tut'\)return;",
+           "if(busy&&!['single','camp','tut','resume','backup','report','reset'].includes(a))return;")
 rep_re('boot-dummy', r"newGame\('single'\);menuOpen=true;modal\(\);", "newGame('single',true);S.dummy=true;menuOpen=true;modal();")
 rep_re('tutorial-flag', r"(function startTutorial\(\)\{\n\s*)newGame\('single'\);", r"\1newGame('single',true);")
 rep('save-code', '// tutorial: a coach panel', piece('save.js') + '// tutorial: a coach panel')
@@ -77,6 +81,7 @@ head = '''<!doctype html>
 <meta name="apple-mobile-web-app-title" content="Underdeck">
 <meta name="theme-color" content="#15191c">
 <meta name="format-detection" content="telephone=no">
+<script>var UD_BUILD='{build}';</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -92,6 +97,7 @@ if('serviceWorker' in navigator&&location.protocol!=='file:')addEventListener('l
 '''
 body = re.sub(r'(?is)^\s*<!doctype[^>]*>|</?html[^>]*>|</?body[^>]*>|</?head>', '', src)
 i = body.index('</style>') + len('</style>')
+head = head.replace('{build}', hashlib.sha1(open(sys.argv[1],'rb').read()).hexdigest()[:10])
 out = head + body[:i] + '\n</head>\n<body>\n' + body[i:] + tail + '</body>\n</html>\n'
 open(os.path.join(ROOT, 'index.html'), 'w', encoding='utf-8').write(out)
 
